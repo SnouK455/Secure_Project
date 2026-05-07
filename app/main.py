@@ -46,15 +46,15 @@ def robots_txt() -> str:
     return "User-agent: *\nDisallow:\n"
 
 
-@app.post("/auth/register", status_code=status.HTTP_201_CREATED)
-def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)) -> dict[str, str]:
+@app.post("/auth/register", response_model=schemas.MessageOut, status_code=status.HTTP_201_CREATED)
+def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)) -> schemas.MessageOut:
     if crud.get_user_by_email(db, user_in.email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email is already registered")
     try:
         crud.create_user(db, user_in)
     except IntegrityError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email is already registered") from exc
-    return {"message": "User created"}
+    return schemas.MessageOut(message="User created")
 
 
 @app.post("/auth/login", response_model=schemas.TokenOut)
@@ -110,7 +110,7 @@ def update_note(
     return crud.update_note(db, note=note, note_in=note_in)
 
 
-@app.delete("/notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 def delete_note(
     note_id: int,
     db: Session = Depends(get_db),

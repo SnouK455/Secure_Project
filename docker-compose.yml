@@ -2,9 +2,9 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: securenotes
-      POSTGRES_USER: appuser
-      POSTGRES_PASSWORD: strongpassword
+      POSTGRES_DB: ${POSTGRES_DB:-securenotes}
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
       - "5432:5432"
     volumes:
@@ -19,9 +19,9 @@ services:
   api:
     build: .
     environment:
-      DATABASE_URL: postgresql+psycopg2://appuser:strongpassword@db:5432/securenotes
-      SECRET_KEY: bc9f2d1671de7b114d815fdd011141b9a9048606d0a292f9cf29f320c5191fff
-      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-securenotes}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
     ports:
       - "8000:8000"
     depends_on:

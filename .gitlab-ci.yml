@@ -93,5 +93,13 @@ dast_zap_baseline:
   script:
     - docker build -t local-securenotes:ci .
     - docker run -d --name securenotes-app -p 8000:8000 -e DATABASE_URL=sqlite:////tmp/secure_notes.db -e SECRET_KEY=test_ci_secret_at_least_32_bytes local-securenotes:ci
-    - sleep 10
-    - docker run --rm --network host -v "$CI_PROJECT_DIR/infra/zap:/zap/wrk" zaproxy/zap-stable:latest zap-baseline.py -t http://127.0.0.1:8000 -m 2 -I -c /zap/wrk/baseline.conf
+    - |
+      for attempt in $(seq 1 30); do
+        if docker exec securenotes-app wget -q -O - http://127.0.0.1:8000/health | grep -q '"status":"ok"'; then
+          exit 0
+        fi
+        sleep 1
+      done
+      docker logs securenotes-app
+      exit 1
+    - docker run --rm --network host -v "$CI_PROJECT_DIR/infra/zap:/zap/wrk" zaproxy/zap-stable:latest zap-baseline.py --autooff -t http://127.0.0.1:8000 -m 2 -I -c /zap/wrk/baseline.conf
