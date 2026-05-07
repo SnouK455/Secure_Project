@@ -7,6 +7,8 @@
 - Docker-образ обновляет `xz-libs` и `pip` во время сборки, чтобы Trivy не находил исправленные LOW/MEDIUM уязвимости в базовом образе и Python tooling.
 - GitLab DAST job больше не использует фиксированный `sleep 10`: ожидание запуска приложения заменено на healthcheck loop по `/health`.
 - ZAP baseline в CI и локальной документации закреплен с `--autooff`, чтобы избежать технической ошибки summary artifact в Automation Framework.
+- CI stage для кастомного ZAP baseline переименован с `dast` в `zap_scan`, чтобы не конфликтовать с GitLab DAST configuration permissions.
+- `trivy_container_scan` настроен без Docker-in-Docker и со сброшенным container entrypoint, чтобы GitLab Runner корректно запускал Trivy CLI.
 - `docker-compose.yml` больше не хранит секреты напрямую: пароль PostgreSQL и `SECRET_KEY` подставляются из локального `.env`.
 - Swagger-схема ответа `POST /auth/register` теперь описана явной моделью `MessageOut`.
 - `DELETE /notes/{note_id}` настроен как пустой `204 No Content` response без JSON response body.

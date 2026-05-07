@@ -52,7 +52,7 @@ GitLab CI/CD
   -> sca
   -> build
   -> container_scan
-  -> dast
+  -> zap_scan
 ```
 
 Приложение рассчитано на запуск через Docker Compose. В Docker-сценарии PostgreSQL используется как основная база данных.
@@ -163,7 +163,7 @@ GitLab CI/CD pipeline описан в `.gitlab-ci.yml`:
 - `sca`: проверка зависимостей на известные уязвимости через pip-audit.
 - `build`: сборка Docker image и публикация в GitLab Container Registry.
 - `container_scan`: сканирование Docker image через Trivy.
-- `dast`: OWASP ZAP baseline scan против запущенного API.
+- `zap_scan`: кастомный OWASP ZAP baseline scan против запущенного API.
 
 DAST job ждёт успешный ответ `/health` перед запуском ZAP, вместо фиксированного `sleep`.
 
