@@ -34,9 +34,9 @@ GitLab CI/CD
   -> tests
   -> sast
   -> sca
+  -> build
   -> container_scan
   -> dast
-  -> build
 ```
 
 Приложение запускается через Docker Compose, PostgreSQL используется как основная база данных.
@@ -106,7 +106,7 @@ curl http://localhost:8000/health
 
 ### 7) Запуск тестов
 ```bash
-pytest -q
+docker compose run --rm tests
 ```
 
 ## DevSecOps-пайплайн (GitLab CI/CD)
@@ -115,17 +115,16 @@ pytest -q
 - `tests`: Pytest - unit-тесты API
 - `sast`: Bandit и Semgrep - статический анализ уязвимостей
 - `sca`: pip-audit - проверка зависимостей на известные CVE
+- `build`: сборка Docker-образа и публикация в GitLab Container Registry
 - `container_scan`: Trivy - сканирование Docker-образа
 - `dast`: OWASP ZAP baseline scan против запущенного API
-- `build`: сборка Docker-образа
 
 Важно: DAST должен запускаться против уже поднятого приложения (в текущем пайплайне используется `http://127.0.0.1:8000` внутри job).
 
 ## Примеры security-проверок
 ```bash
-bandit -r app -x tests
-semgrep --config auto app
-pip-audit -r requirements.txt
+docker compose run --rm --user root tests /bin/sh -c "pip install bandit && bandit -r app -x tests -f txt"
+docker compose run --rm --user root tests /bin/sh -c "pip install pip-audit && pip-audit -r requirements.txt"
 docker build -t secure-notes:local .
 trivy image secure-notes:local
 ```

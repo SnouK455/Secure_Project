@@ -16,7 +16,10 @@ def get_current_user(
 ) -> User:
     if creds is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
-    payload = decode_access_token(creds.credentials)
+    try:
+        payload = decode_access_token(creds.credentials)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
     subject = payload.get("sub")
     if not isinstance(subject, str):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
