@@ -3,9 +3,9 @@ stages:
   - tests
   - sast
   - sca
+  - build
   - container_scan
   - dast
-  - build
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -42,6 +42,7 @@ bandit_sast:
 semgrep_sast:
   stage: sast
   image: semgrep/semgrep:latest
+  before_script: []
   script:
     - semgrep --config auto app
 
@@ -61,7 +62,9 @@ build_image:
     DOCKER_TLS_CERTDIR: ""
   before_script: []
   script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - docker build -t "$IMAGE_TAG" .
+    - docker push "$IMAGE_TAG"
 
 trivy_container_scan:
   stage: container_scan
@@ -73,6 +76,7 @@ trivy_container_scan:
     DOCKER_TLS_CERTDIR: ""
   before_script: []
   script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_TAG"
   needs:
     - build_image
@@ -88,6 +92,6 @@ dast_zap_baseline:
   before_script: []
   script:
     - docker build -t local-securenotes:ci .
-    - docker run -d --name securenotes-app -p 8000:8000 -e DATABASE_URL=sqlite:///./secure_notes.db -e SECRET_KEY=test_ci_secret local-securenotes:ci
+    - docker run -d --name securenotes-app -p 8000:8000 -e DATABASE_URL=sqlite:////tmp/secure_notes.db -e SECRET_KEY=test_ci_secret_at_least_32_bytes local-securenotes:ci
     - sleep 10
-    - docker run --rm --network host zaproxy/zap-stable:latest zap-baseline.py -t http://127.0.0.1:8000 -m 2 -I
+    - docker run --rm --network host -v "$CI_PROJECT_DIR/infra/zap:/zap/wrk" zaproxy/zap-stable:latest zap-baseline.py -t http://127.0.0.1:8000 -m 2 -I -c /zap/wrk/baseline.conf

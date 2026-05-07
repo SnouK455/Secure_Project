@@ -34,7 +34,7 @@ services:
     command: pytest -q
     environment:
       DATABASE_URL: sqlite:///./test.db
-      SECRET_KEY: test_secret_for_ci
+      SECRET_KEY: test_secret_for_ci_at_least_32_bytes
       PYTHONPATH: /app
     volumes:
       - .:/app
