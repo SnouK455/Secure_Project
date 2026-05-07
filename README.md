@@ -150,14 +150,7 @@ trivy image secure-notes:local
 - `docs/security-pipeline.md` - описание security-этапов в CI/CD и ожидаемых артефактов.
 - `docs/owasp-mapping.md` - маппинг практик/уязвимостей на OWASP Top 10 и CWE.
 
-## Скриншоты
-Скриншоты можно добавить после первого успешного запуска пайплайна:
-- результат GitLab pipeline
-- отчёт ZAP baseline
-- отчёт Trivy по Docker-образу
-- страница Swagger-документации API
-
-## Что проект демонстрирует для роли Junior DevSecOps
+## Что проект демонстрирует
 - понимание secure SDLC
 - умение контейнеризировать приложение
 - умение встраивать security-инструменты в CI/CD
@@ -166,13 +159,6 @@ trivy image secure-notes:local
 - понимание OWASP Top 10 и CWE-маппинга
 - базовую автоматизацию деплоя через Ansible
 - базовую IaC-структуру на Terraform
-
-## Формулировка для резюме
-Короткий вариант для резюме:  
-"Разработал FastAPI-приложение Secure Notes с PostgreSQL и Docker Compose, интегрировал SAST, SCA, DAST и container scanning в GitLab CI/CD, подготовил security-документацию с маппингом на OWASP Top 10 и CWE."
-
-Расширенный вариант для GitHub/собеседования:  
-"Реализовал portfolio-ready DevSecOps/AppSec проект на FastAPI с PostgreSQL: JWT-аутентификация, bcrypt-хеширование паролей, CRUD для заметок и user-level контроль доступа. Настроил Docker/Docker Compose и GitLab CI/CD pipeline со стадиями lint, tests, SAST, SCA, container scan, DAST и build (Ruff, Pytest, Bandit, Semgrep, pip-audit, Trivy, OWASP ZAP). Подготовил security-документацию (threat model, security pipeline, OWASP/CWE mapping) и учебные vulnerable/fixed кейсы для демонстрации triage и remediation."
 
 ## Следующие улучшения
 - ограничение частоты запросов (rate limiting) для API
