@@ -1,0 +1,93 @@
+stages:
+  - lint
+  - tests
+  - sast
+  - sca
+  - container_scan
+  - dast
+  - build
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  IMAGE_TAG: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+
+cache:
+  paths:
+    - .cache/pip
+
+default:
+  image: python:3.12-slim
+  before_script:
+    - python --version
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+
+lint:
+  stage: lint
+  script:
+    - pip install ruff
+    - ruff check app tests
+
+tests:
+  stage: tests
+  script:
+    - pytest -q --disable-warnings --maxfail=1
+
+bandit_sast:
+  stage: sast
+  script:
+    - pip install bandit
+    - bandit -r app -x tests -f txt
+
+semgrep_sast:
+  stage: sast
+  image: semgrep/semgrep:latest
+  script:
+    - semgrep --config auto app
+
+pip_audit_sca:
+  stage: sca
+  script:
+    - pip install pip-audit
+    - pip-audit -r requirements.txt
+
+build_image:
+  stage: build
+  image: docker:27.3.1
+  services:
+    - docker:27.3.1-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_TLS_CERTDIR: ""
+  before_script: []
+  script:
+    - docker build -t "$IMAGE_TAG" .
+
+trivy_container_scan:
+  stage: container_scan
+  image: aquasec/trivy:latest
+  services:
+    - docker:27.3.1-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_TLS_CERTDIR: ""
+  before_script: []
+  script:
+    - trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_TAG"
+  needs:
+    - build_image
+
+dast_zap_baseline:
+  stage: dast
+  image: docker:27.3.1
+  services:
+    - docker:27.3.1-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_TLS_CERTDIR: ""
+  before_script: []
+  script:
+    - docker build -t local-securenotes:ci .
+    - docker run -d --name securenotes-app -p 8000:8000 -e DATABASE_URL=sqlite:///./secure_notes.db -e SECRET_KEY=test_ci_secret local-securenotes:ci
+    - sleep 10
+    - docker run --rm --network host zaproxy/zap-stable:latest zap-baseline.py -t http://127.0.0.1:8000 -m 2 -I
