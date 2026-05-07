@@ -1,0 +1,14 @@
+.git
+.gitignore
+.pytest_cache
+.ruff_cache
+__pycache__
+*.pyc
+*.pyo
+*.db
+.env
+.venv
+terraform/.terraform
+terraform/.terraform.lock.hcl
+terraform/build
+docs/screenshots

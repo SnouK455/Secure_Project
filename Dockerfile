@@ -8,7 +8,9 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S -G appgroup appuser
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apk add --no-cache --upgrade xz-libs \
+    && pip install --no-cache-dir --upgrade "pip>=26.1" \
+    && pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 

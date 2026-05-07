@@ -18,6 +18,10 @@ class TokenOut(BaseModel):
     token_type: str = "bearer"
 
 
+class MessageOut(BaseModel):
+    message: str
+
+
 class NoteBase(BaseModel):
     title: str = Field(min_length=1, max_length=120)
     content: str = Field(min_length=1, max_length=5000)

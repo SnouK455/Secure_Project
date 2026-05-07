@@ -4,6 +4,12 @@
 
 ### Исправлено
 - Запрещены значения заметок, состоящие только из пробелов: `POST /notes` и `PUT /notes/{note_id}` теперь возвращают `422 Validation Error` вместо `500 Internal Server Error`, а невалидные заметки не попадают в базу.
+- Docker-образ обновляет `xz-libs` и `pip` во время сборки, чтобы Trivy не находил исправленные LOW/MEDIUM уязвимости в базовом образе и Python tooling.
+- GitLab DAST job больше не использует фиксированный `sleep 10`: ожидание запуска приложения заменено на healthcheck loop по `/health`.
+- ZAP baseline в CI и локальной документации закреплен с `--autooff`, чтобы избежать технической ошибки summary artifact в Automation Framework.
+- `docker-compose.yml` больше не хранит секреты напрямую: пароль PostgreSQL и `SECRET_KEY` подставляются из локального `.env`.
+- Swagger-схема ответа `POST /auth/register` теперь описана явной моделью `MessageOut`.
+- `DELETE /notes/{note_id}` настроен как пустой `204 No Content` response без JSON response body.
 - Обновлены уязвимые Python-зависимости, чтобы SCA-проверки проходили без известных уязвимостей.
 - `python-jose` заменен на `PyJWT`, `passlib` удален в пользу прямого использования `bcrypt` для хеширования паролей.
 - Исправлена обработка невалидных JWT: теперь некорректный токен возвращает `401 Unauthorized`, а не приводит к внутренней ошибке.
@@ -16,6 +22,7 @@
 - Default/example/test значения `SECRET_KEY` увеличены до рекомендуемой длины для HS256.
 
 ### Добавлено
+- Добавлен `.dockerignore`, чтобы Docker build context не включал `.git`, кеши, локальные базы, `.env` и другие лишние файлы.
 - Добавлены публичные endpoints `/` и `/robots.txt` для аккуратной API-метаинформации и более чистого DAST-поведения.
 - Добавлен middleware с security headers:
   - `X-Content-Type-Options: nosniff`
@@ -35,12 +42,12 @@
 - Улучшена изоляция тестов: таблицы БД пересоздаются для каждого тест-кейса.
 
 ### Проверено
-- `pytest`: 7 тестов прошли
+- `pytest`: 9 тестов прошли после добавления регрессии для пробельных полей заметки
 - `ruff`: все проверки прошли
 - `bandit`: проблем не найдено
 - `pip-audit`: известных уязвимостей не найдено
 - `semgrep`: 0 findings
-- `trivy`: 0 High/Critical findings
+- `trivy`: 0 vulnerabilities после обновления `xz-libs` и `pip` в Dockerfile
 - `OWASP ZAP baseline`: 0 FAIL, 0 WARN
 - Docker image успешно собирается
 - `.gitlab-ci.yml` успешно парсится
