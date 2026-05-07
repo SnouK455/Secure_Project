@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class UserRegister(BaseModel):
@@ -22,6 +22,14 @@ class NoteBase(BaseModel):
     title: str = Field(min_length=1, max_length=120)
     content: str = Field(min_length=1, max_length=5000)
 
+    @field_validator("title", "content")
+    @classmethod
+    def strip_non_empty_text(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("Field must not be blank")
+        return stripped
+
 
 class NoteCreate(NoteBase):
     pass
@@ -30,6 +38,16 @@ class NoteCreate(NoteBase):
 class NoteUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=120)
     content: str | None = Field(default=None, min_length=1, max_length=5000)
+
+    @field_validator("title", "content")
+    @classmethod
+    def strip_optional_non_empty_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("Field must not be blank")
+        return stripped
 
 
 class NoteOut(NoteBase):

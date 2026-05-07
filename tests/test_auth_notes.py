@@ -128,6 +128,39 @@ def test_empty_note_update_is_rejected(client: TestClient) -> None:
     assert update_resp.json()["detail"] == "No fields to update"
 
 
+def test_blank_note_fields_are_rejected(client: TestClient) -> None:
+    token = _register_and_login(client, "user@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    create_resp = client.post(
+        "/notes",
+        json={"title": "   ", "content": "   "},
+        headers=headers,
+    )
+
+    assert create_resp.status_code == 422
+    assert client.get("/notes", headers=headers).json() == []
+
+
+def test_blank_note_update_fields_are_rejected(client: TestClient) -> None:
+    token = _register_and_login(client, "user@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+    create_resp = client.post(
+        "/notes",
+        json={"title": "note", "content": "content"},
+        headers=headers,
+    )
+    assert create_resp.status_code == 201
+
+    update_resp = client.put(
+        f"/notes/{create_resp.json()['id']}",
+        json={"title": "   "},
+        headers=headers,
+    )
+
+    assert update_resp.status_code == 422
+
+
 def _register_and_login(client: TestClient, email: str) -> str:
     password = "VeryStrong123"
     register_resp = client.post("/auth/register", json={"email": email, "password": password})
