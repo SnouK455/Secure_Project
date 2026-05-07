@@ -5,7 +5,7 @@ stages:
   - sca
   - build
   - container_scan
-  - dast
+  - zap_scan
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -82,7 +82,7 @@ trivy_container_scan:
     - build_image
 
 dast_zap_baseline:
-  stage: dast
+  stage: zap_scan
   image: docker:27.3.1
   services:
     - docker:27.3.1-dind
